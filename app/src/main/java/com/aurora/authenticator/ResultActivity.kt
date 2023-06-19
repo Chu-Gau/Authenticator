@@ -3,9 +3,12 @@ package com.aurora.authenticator
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import com.aurora.authenticator.Locker.LOCK_AUTH
 import com.aurora.authenticator.databinding.ActivityResultBinding
 import nl.komponents.kovenant.task
+import nl.komponents.kovenant.ui.alwaysUi
 import nl.komponents.kovenant.ui.failUi
 import nl.komponents.kovenant.ui.successUi
 
@@ -50,6 +53,9 @@ class ResultActivity : Activity() {
                 B.email.setText(it["Email"])
                 B.auth.setText(it["Auth"])
                 B.token.setText(it["Token"])
+                LOCK_AUTH.email = it["Email"].toString()
+                LOCK_AUTH.authToken = it["Auth"].toString()
+                LOCK_AUTH.AASToken = it["Token"].toString()
             } else {
                 B.viewFlipper.displayedChild = 2
                 Toast.makeText(this, "Failed to generate AC2DM Auth Token", Toast.LENGTH_LONG).show()
@@ -57,6 +63,13 @@ class ResultActivity : Activity() {
         } failUi {
             B.viewFlipper.displayedChild = 2
             Toast.makeText(this, "Failed to generate AC2DM Auth Token", Toast.LENGTH_LONG).show()
+        } alwaysUi  {
+            try {
+                Locker.notifyAll(LOCK_AUTH)
+            } catch (e: IllegalMonitorStateException) {
+                Log.w("AURORA-DB", "retrieveAc2dmToken: ${e.message}")
+            }
+
         }
     }
 }
